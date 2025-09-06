@@ -3,24 +3,33 @@ using UnityEngine;
 
 public class ListOfPoint : MonoBehaviour
 {
+    [SerializeField] private Coin _currentCoin;
+
     private List<PointSpawn> _spawnPoints = new();
-    
+
     private void Start()
     {
         FillList();
         SpawnCoin();
     }
 
-    private void OnEnable()
+    private void HandleCoinCollected(Coin coin)
     {
-        Coin.PlayerTouched += SpawnCoin;
+        SpawnCoin();
+        coin.Collected -= HandleCoinCollected;
     }
 
-    private void OnDisable()
+    private void HandleCoinSpawned(Coin nextCoin)
     {
-        Coin.PlayerTouched -= SpawnCoin;
+        if (_currentCoin != null)
+        {
+            _currentCoin.Collected -= HandleCoinCollected;
+        }
+
+        _currentCoin = nextCoin;
+        _currentCoin.Collected += HandleCoinCollected;
     }
-   
+
     public void SpawnCoin()
     {
         _spawnPoints[GeneratePointNumber()].SpawnCoin();
@@ -30,9 +39,10 @@ public class ListOfPoint : MonoBehaviour
     {
         foreach (Transform oneTransform in transform)
         {
-            if (oneTransform.CompareTag(HashForTags.Point) && oneTransform.TryGetComponent(out PointSpawn spawnPoint))
+            if (oneTransform.TryGetComponent(out PointSpawn spawnPoint))
             {
                 _spawnPoints.Add(spawnPoint);
+                spawnPoint.CoinSpawned += HandleCoinSpawned;
             }
         }
     }

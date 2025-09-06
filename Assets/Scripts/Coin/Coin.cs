@@ -3,21 +3,11 @@ using System;
 
 public class Coin : MonoBehaviour
 {
-    [SerializeField] private CoinsCounter _coinsCounter;
+    public event Action<Coin> Collected;
 
-    public static Action PlayerTouched;
-   
-    private void OnTriggerEnter2D(Collider2D colliderOfPlayer)
+    public void Collect()
     {
-        if (colliderOfPlayer.TryGetComponent<Player>(out Player player))
-        {
-            if (_coinsCounter != null)
-            {
-                player.GetCoinsCounter().AddCoin();
-            }
-         
-            PlayerTouched?.Invoke();
-            Destroy(gameObject);
-        }
+        Collected?.Invoke(this);
+        Destroy(gameObject);
     }
 }

@@ -1,19 +1,25 @@
 using UnityEngine;
-using DG.Tweening;
-using UnityEngine.UI;
+using TMPro;
 
 public class CoinsCounter : MonoBehaviour
 {
-    [SerializeField] private Text _text;
+    [SerializeField] private TMP_Text _text;
 
     private int _coinCount = 0;
 
-    private void Update()
+    private void Start()
     {
-        _text.DOText(_coinCount.ToString(), 0);
+        UpdateText();
     }
+
     public void AddCoin()
     {
         _coinCount++;
+        UpdateText();
+    }
+
+    private void UpdateText()
+    {
+        _text.text = _coinCount.ToString();
     }
 }

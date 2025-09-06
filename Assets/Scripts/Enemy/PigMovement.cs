@@ -1,12 +1,10 @@
 using UnityEngine;
 
-[RequireComponent(typeof(SpriteRenderer))]
-
 public class PigMovement : MonoBehaviour
 {
     [SerializeField] private Transform[] _waypoints;
     [SerializeField] private float _speed = 2f;
-    [SerializeField] private SpriteRenderer _spriteRenderer;
+    [SerializeField] private Flipper _flipper;
 
     private int _currentWaypoint = 0;
     private float _distanceToWaypointThreshold = 0.1f;
@@ -14,13 +12,19 @@ public class PigMovement : MonoBehaviour
 
     private void Awake()
     {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _flipper = GetComponent<Flipper>();
     }
 
     private void Update()
     {
         Move();
-        Flip();
+        UpdateDirection();
+    }
+
+    private void UpdateDirection()
+    {
+        float direction = _waypoints[_currentWaypoint].position.x - transform.position.x;
+        _flipper.SetDirection(direction);
     }
 
     private void Move()
@@ -29,14 +33,6 @@ public class PigMovement : MonoBehaviour
             _currentWaypoint = (_currentWaypoint + _waypointStep) % _waypoints.Length;
 
         transform.position = Vector3.MoveTowards( transform.position, _waypoints[_currentWaypoint].position, _speed * Time.deltaTime);
-    }
-
-    private void Flip()
-    {
-        if (transform.position.x < _waypoints[_currentWaypoint].position.x)
-            _spriteRenderer.flipX = false; 
-        else if (transform.position.x > _waypoints[_currentWaypoint].position.x)
-            _spriteRenderer.flipX = true;
     }
 }
 
