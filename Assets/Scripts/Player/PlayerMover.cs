@@ -1,42 +1,39 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMover : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 2f;
-    [SerializeField] private float _jumpForce = 4f;
-    [SerializeField] private float _groundCheckDistance = 1f;
-    [SerializeField] private LayerMask _groundMask;
     [SerializeField] private Flipper _flipper;
     [SerializeField] private InputReader _inputReader;
+    [SerializeField] private GroundDetector _groundDetector;
 
     private Rigidbody2D _rigidbody;
-    private bool _isMoved = false;
+    private bool _isMoving = false;
 
     public bool IsGrounded { get; private set; } = true;
+
+    public event Action<bool> MovementStateChanged;
 
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _flipper = GetComponentInChildren<Flipper>();
+        _groundDetector = GetComponent<GroundDetector>();
     }
 
-    private void OnEnable()
-    {
-        _inputReader.Moving += HandleMoveInput;
-        _inputReader.JumpPressed += HandleJumpInput;
-    }
-
-    private void OnDisable()
+    private void OnDestroy()
     {
         _inputReader.Moving -= HandleMoveInput;
-        _inputReader.JumpPressed -= HandleJumpInput;
+    }
+    public void Initialize(InputReader inputReader)
+    {
+        _inputReader = inputReader;
+        _inputReader.Moving += HandleMoveInput;
     }
 
-    private void Update()
-    {
-        CheckGrounded();
-    }
+    public bool IsRunning => _isMoving && _groundDetector.IsGrounded;
 
     public void HandleMoveInput(float horizontalInput)
     {
@@ -45,36 +42,17 @@ public class PlayerMover : MonoBehaviour
         _flipper.SetDirection(horizontalInput);
     }
 
-    public void HandleJumpInput()
-    {
-        if (IsGrounded)
-        {
-            Jump();
-        }
-    }
-
     public void CheckMovement(float speed)
     {
-        _isMoved = Mathf.Abs(speed) > 0;
-    }
+        bool wasMoved = _isMoving;
+        _isMoving = Mathf.Abs(speed) > 0;
 
-    public bool IsRunning => _isMoved && IsGrounded;
-
-    private void Jump()
-    {
-        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _jumpForce);
-        IsGrounded = false;
+        if (wasMoved != _isMoving && _groundDetector.IsGrounded)
+            MovementStateChanged?.Invoke(_isMoving);
     }
 
     private void Move(float horizontalInput)
     {
         transform.Translate(new Vector3(horizontalInput * _moveSpeed * Time.deltaTime, 0, 0), Space.World);
-    }
-
-    private void CheckGrounded()
-    {
-        Vector2 rayOrigin = _rigidbody.position;
-        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, _groundCheckDistance, _groundMask);
-        IsGrounded = hit.collider != null;
     }
 }

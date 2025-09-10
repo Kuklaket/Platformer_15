@@ -7,6 +7,7 @@ public class Flipper : MonoBehaviour
     private bool _isFacingRight = true;
     private float _rightRotation = 0f;
     private float _leftRotation = 180f;
+    private float _minDirectionThreshold = 0.1f;
 
     private void Awake()
     {
@@ -17,12 +18,10 @@ public class Flipper : MonoBehaviour
     {
         bool shouldFaceRight = xDirection > 0;
 
-        if (Mathf.Abs(xDirection) < 0.1f) return;
+        if (Mathf.Abs(xDirection) < _minDirectionThreshold) return;
 
         if (shouldFaceRight != _isFacingRight)
-        {
             Flip(shouldFaceRight);
-        }
     }
 
     public void Flip(bool faceRight)
